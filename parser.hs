@@ -39,15 +39,14 @@ prgrm :: TokParser
 prgrm = PrgrmNode <$> many (expr <* itemP TokEnd)
 
 expr :: TokParser
-expr = chainl1 term (addP <|> subP) <|> assignP
+expr = assignP <|> chainl1 term (addP <|> subP)
  where
   addP = AddNode <$ itemP (TokOp Add)
   subP = SubNode <$ itemP (TokOp Sub)
-  assignP =
-    (\x _ y -> AssignNode x y)
-      <$> fieldP getTokIdent
-      <*> itemP TokAssign
-      <*> expr
+
+assignP :: Parser Token ParseTree
+assignP =
+  (\x _ y -> AssignNode x y) <$> fieldP getTokIdent <*> itemP TokAssign <*> expr
 
 term :: TokParser
 term = chainl1 factor (multP <|> divP)
