@@ -1,20 +1,25 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Tokenizer where
+
 import           Data.Char
 
-data Operator = Add | Sub | Mult | Div
-   deriving (Eq, Show)
+data Operator
+  = Add
+  | Sub
+  | Mult
+  | Div
+  deriving (Eq, Show)
 
-data Token = TokInt Int
-           | TokIdent String
-           | TokOp Operator
-           | TokAssign
-           | TokEnd
-           | TokLParen
-           | TokRParen
-   deriving (Eq, Show)
-
+data Token
+  = TokInt Int
+  | TokIdent String
+  | TokOp Operator
+  | TokAssign
+  | TokEnd
+  | TokLParen
+  | TokRParen
+  deriving (Eq, Show)
 
 getTokOp :: Token -> Maybe Operator
 getTokOp = \case
@@ -35,15 +40,15 @@ getTokIdent = \case
 
 tokenize :: String -> [Token]
 tokenize [] = []
-tokenize (x : xs) | isSpace x     = tokenize xs
-                  | isDigit x     = integer (x : xs)
-                  | isAlpha x     = idenitfier (x : xs)
-                  | x == '#'      = comment (x : xs)
+tokenize (x : xs) | isSpace x       = tokenize xs
+                  | isDigit x       = integer (x : xs)
+                  | isAlpha x       = idenitfier (x : xs)
+                  | x == '#'        = comment (x : xs)
                   | x `elem` "+-*/" = TokOp (operator x) : tokenize xs
-                  | x == '='      = TokAssign : tokenize xs
-                  | x == ';'      = TokEnd : tokenize xs
-                  | x == '('      = TokLParen : tokenize xs
-                  | x == ')'      = TokRParen : tokenize xs
+                  | x == '='        = TokAssign : tokenize xs
+                  | x == ';'        = TokEnd : tokenize xs
+                  | x == '('        = TokLParen : tokenize xs
+                  | x == ')'        = TokRParen : tokenize xs
  where
   integer :: String -> [Token]
   integer xs = TokInt (read digs) : tokenize rest
@@ -61,11 +66,3 @@ tokenize (x : xs) | isSpace x     = tokenize xs
              | x == '-' = Sub
              | x == '*' = Mult
              | x == '/' = Div
-
-
-
-test :: [[Int]]
-test = [[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]]
-
-sum2DArray :: [[Int]] -> Int
-sum2DArray = sum . map sum

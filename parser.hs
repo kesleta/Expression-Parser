@@ -58,8 +58,9 @@ term = chainl1 factor (multP <|> divP)
 factor :: TokParser
 factor = intP <|> parExprP <|> negP <|> identP
  where
-  intP = NumNode <$> fieldP getTokInt
+  intP     = NumNode <$> fieldP getTokInt
   parExprP = itemP TokLParen *> expr <* itemP TokRParen
-  identP = IdentNode <$> fieldP getTokIdent
+  identP   = IdentNode <$> fieldP getTokIdent
   negP =
-    NegNode <$> (itemP TokLParen *> itemP (TokOp Sub) *> factor <* itemP TokRParen)
+    NegNode
+      <$> (itemP TokLParen *> itemP (TokOp Sub) *> factor <* itemP TokRParen)

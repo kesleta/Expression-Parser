@@ -1,30 +1,33 @@
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Parserlib
   ( module Parserlib
   , module Control.Applicative
   , module Control.Monad
   ) where
+
 import           Control.Applicative
 import           Control.Monad
 import           Data.Char
+import           Graphics.Win32                 ( Menu )
 
-newtype Parser a b = Parser
-  { runParser :: [a] -> Maybe ([a], b)
-  }
+newtype Parser a b =
+  Parser
+    { runParser :: [a] -> Maybe ([a], b)
+    }
 
-instance Functor (Parser a) where
-  fmap f p = Parser $ \input -> do
-    (input', x) <- runParser p input
-    Just (input', f x)
+instance Monad (Parser a) where
+  return x = Parser $ \input -> Just (input, x)
+  (Parser p) >>= f = Parser $ \input -> case p input of
+    Nothing          -> Nothing
+    Just (input', x) -> runParser (f x) input'
 
 instance Applicative (Parser a) where
-  pure x = Parser $ \input -> Just (input, x)
-  (Parser p1) <*> (Parser p2) = Parser $ \input -> do
-    (input' , f) <- p1 input
-    (input'', x) <- p2 input'
-    Just (input'', f x)
+  pure  = return
+  (<*>) = ap
+
+instance Functor (Parser a) where
+  fmap = liftM
 
 instance Alternative (Parser a) where
   empty = Parser $ const Nothing
@@ -32,15 +35,11 @@ instance Alternative (Parser a) where
     Nothing -> runParser p2 input
     res     -> res
 
-instance Monad (Parser a) where
-  (Parser p) >>= f = Parser $ \input -> case p input of
-    Nothing          -> Nothing
-    Just (input', x) -> runParser (f x) input'
-
-instance MonadPlus (Parser a)
+instance MonadPlus (Parser a) where
+  mzero = empty
+  mplus = (<|>)
 
 {----------------------------------}
-
 parseIf :: (a -> Bool) -> Parser a a
 parseIf f = Parser $ \case
   x : xs | f x       -> Just (xs, x)
@@ -97,4 +96,3 @@ chainr1 p op = scan
       f <- op
       f x <$> scan
     <|> return x
-
